@@ -12,16 +12,10 @@ def session_post():
     if session_global.is_active:
         return bad_request("a session is already active")
 
-    # the timeout before closing the session if no activity
-    timeout = request.args.get('timeout')
-
-    # the database to open
-    name = request.args.get('name')
-
     # the key (base64 encoded) to use for database encryption/decryption
     key_base64 = request.args.get('key')
 
-    session_global.open(timeout=timeout)
+    session_global.open()
 
     return created({
         "token": session_global.token

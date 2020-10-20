@@ -9,6 +9,8 @@ from flask import current_app
 
 
 class Session(object):
+    # -- DEFAULT VALUES AT INITIALIZATION -- #
+
     # tells if the session is active
     is_active = False
 
@@ -34,8 +36,6 @@ class Session(object):
     database = None
 
     def __init__(self):
-        self.is_active = False
-
         # init the closing scheduler
         self.scheduler = sched.scheduler(time.time, time.sleep)
 
@@ -47,12 +47,9 @@ class Session(object):
             timeout=self.timeout
         )
 
-    def open(self, timeout=None):
+    def open(self):
         self.created_at = datetime.now()
         self.last_activity_time = datetime.now()
-
-        if timeout is not None:
-            self.timeout = timeout
 
         self.is_active = True
         self.token = self._generate_token()

@@ -16,5 +16,11 @@ config = Config({
         "name": "password_manager",
         "host": "0.0.0.0",
         "port": 5000
+    },
+    "database": {
+        "path": "db/default.db"
+    },
+    "crypto": {
+        "key_derivation_cost": 14
     }
 }, ['DEBUG'])
