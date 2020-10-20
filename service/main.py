@@ -8,12 +8,12 @@ app = Flask(config.app['name'])
 
 
 def start_app():
+    # register controllers
+    app.register_blueprint(session_blueprint)
+
     host = config.app['host']
     port = config.app['port']
     debug = config.DEBUG == "1"
-
-    app.register_blueprint(session_blueprint)
-
     app.run(host, port, debug)
 
 
