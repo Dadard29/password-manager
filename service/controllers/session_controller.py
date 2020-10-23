@@ -18,7 +18,8 @@ def session_post():
     session_global.open()
 
     return created({
-        "token": session_global.token
+        "token": session_global.token,
+        "session": session_global.to_dict()
     })
 
 
@@ -40,7 +41,5 @@ def session_delete():
 @session_blueprint.route("/session", methods=['GET'])
 @check_session_token(request, session_global)
 def session_get():
-    # check auth
-    # todo
 
     return retrieved(session_global.to_dict(), "session retrieved")

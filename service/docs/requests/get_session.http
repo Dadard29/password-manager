@@ -1,0 +1,7 @@
+GET http://localhost:5000/session
+Accept: application/json
+Authorization: baa8d1c0f7459a5ef44055dcda1fa484
+
+
+
+###

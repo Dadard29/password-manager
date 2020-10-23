@@ -1,0 +1,5 @@
+DELETE http://localhost:5000/session
+Accept: application/json
+Authorization: fd90f8d5c6fdf5331b9fba8540eda70b
+
+###

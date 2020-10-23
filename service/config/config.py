@@ -17,6 +17,9 @@ config = Config({
         "host": "0.0.0.0",
         "port": 5000
     },
+    "session": {
+        "timeout": 120,
+    },
     "database": {
         "path": "db/default.db"
     },

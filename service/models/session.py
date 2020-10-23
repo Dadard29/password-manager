@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 # the session object is used to manage database loading, unloading and access
 from flask import current_app
 
+from service.config.config import config
+
 
 class Session(object):
     # -- DEFAULT VALUES AT INITIALIZATION -- #
@@ -24,20 +26,13 @@ class Session(object):
     last_activity_time = None
 
     # the duration in seconds before closing the session if no user activity is detected
-    timeout = 120
-
-    # the scheduler used to manage the session closing
-    scheduler = None
-
-    # the event when the session closing occurs
-    closing_event = None
+    timeout = config.session['timeout']
 
     # the database object
     database = None
 
     def __init__(self):
-        # init the closing scheduler
-        self.scheduler = sched.scheduler(time.time, time.sleep)
+        pass
 
     def to_dict(self):
         return dict(
@@ -64,11 +59,11 @@ class Session(object):
         self._reschedule_closing()
 
     def close(self):
+        # reset to default values
         self.is_active = False
         self.token = None
         self.created_at = None
         self.last_activity_time = None
-        self.closing_event = None
 
         # write the database change
         # todo
@@ -79,11 +74,8 @@ class Session(object):
         current_app.logger.info("session closed")
 
     def _reschedule_closing(self):
-        if self.closing_event is not None:
-            self.scheduler.cancel(self.closing_event)
-
-        closing_time = self.last_activity_time + timedelta(seconds=self.timeout)
-        self.closing_event = self.scheduler.enterabs(closing_time.timestamp(), 1, self.close)
+        # todo
+        return
 
     @staticmethod
     def _generate_token():
