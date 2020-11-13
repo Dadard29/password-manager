@@ -85,7 +85,7 @@ class Session(object):
 
     @staticmethod
     def _generate_token():
-        if environ['DEBUG'] == "1":
+        if config.DEBUG == "1":
             return "session_token"
 
         return secrets.token_hex(16)

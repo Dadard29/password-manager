@@ -1,4 +1,4 @@
-import os
+from os import environ
 from typing import List
 
 
@@ -8,20 +8,17 @@ class Config(object):
             setattr(self, k, v)
 
         for e in env_list:
-            setattr(self, e, os.environ[e])
+            setattr(self, e, environ[e])
 
 
 config = Config({
     "app": {
         "name": "password_manager",
-        "host": "0.0.0.0",
-        "port": 5000
+        "host": environ['HTTP_HOST'],
+        "port": environ['HTTP_PORT']
     },
     "session": {
         "timeout": 120,
-    },
-    "database": {
-        "path": "db/default.db"
     },
     "crypto": {
         "key_derivation_cost": 14

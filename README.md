@@ -6,25 +6,34 @@ The service is a HTTP server, and can be accessed through several REST endpoints
 
 It allows you to access your secrets, stored on the remote server.
 
-### Session creation
+The documentation related to HTTP requests and to the API is available here:
+`url here`
+
+### Setup
+
+Clone this repo on the machine where you want to host the service. The machine must be reachable with HTTP. 
+```
+git clone https://github.com/Dadard29/password-manager.git
+```
+
+Put an empty file
+
+Configure the following environment variables:
+- `MASTER_KEY`: the key to use for database encryption. `TODO`
+- `HTTP_HOST`: the host to listen on
+- `HTTP_PORT`: the port to listen on
+- `DEBUG`: tells if the service run in DEBUG mode (insecure)
+
+
+
+Run the service using python: `python service/main.py`
+
+
+### Session
 
 The password manager is not multi-user. Only one user is supposed to access the service.
 
-To be able to access your secrets, you need to open a session:
-```http request
-post request
-```
-
-The bearer token is the key, encoded in base64, to be used for the database encryption/decryption.
-
-The response is expected to look like this: 
-```http request
-post response
-```
-
-The `token` field is the token to be used in the `Authorization` header, in all your next requests to the service.
-
-The session is now opened, and the database loaded into memory. 
+When you configure the service, you must provide
 
 ### Data access
 
