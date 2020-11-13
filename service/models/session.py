@@ -5,9 +5,12 @@ from datetime import datetime, timedelta
 
 
 # the session object is used to manage database loading, unloading and access
+from os import environ
+
 from flask import current_app
 
 from service.config.config import config
+from service.models.database import Database
 
 
 class Session(object):
@@ -32,7 +35,10 @@ class Session(object):
     database = None
 
     def __init__(self):
-        pass
+        # open the db
+        file_path = environ['DB_PATH']
+        master_key = environ['MASTER_KEY']
+        self.database = Database(file_path, master_key)
 
     def to_dict(self):
         return dict(
@@ -48,6 +54,8 @@ class Session(object):
 
         self.is_active = True
         self.token = self._generate_token()
+
+        self.database.load()
 
         # schedule automated closing
         self._reschedule_closing()
@@ -66,10 +74,8 @@ class Session(object):
         self.last_activity_time = None
 
         # write the database change
-        # todo
-
-        # free the database memory
-        # todo
+        self.database.save()
+        self.database.unload()
 
         current_app.logger.info("session closed")
 
@@ -79,4 +85,7 @@ class Session(object):
 
     @staticmethod
     def _generate_token():
+        if environ['DEBUG'] == "1":
+            return "session_token"
+
         return secrets.token_hex(16)

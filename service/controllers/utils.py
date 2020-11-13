@@ -3,6 +3,8 @@ from functools import wraps
 
 from service.models.session import Session
 
+from flask import current_app
+
 
 def format_body(body, code, message):
     return {
@@ -13,6 +15,9 @@ def format_body(body, code, message):
 
 
 def format_error(code, message):
+    current_app.logger.error(message)
+    if not isinstance(message, str):
+        message = str(message)
     return {
                "code": code,
                "message": message
@@ -21,6 +26,11 @@ def format_error(code, message):
 
 def created(body, message="object created"):
     code = 201
+    return format_body(body, code, message)
+
+
+def edited(body, message="object edited"):
+    code = 200
     return format_body(body, code, message)
 
 
@@ -41,6 +51,11 @@ def bad_request(message="bad request"):
 
 def not_found(message="not found"):
     code = 404
+    return format_error(code, message)
+
+
+def internal(message="internal server error"):
+    code = 500
     return format_error(code, message)
 
 
@@ -67,4 +82,5 @@ def check_session_token(request, session: Session):
             return func(*args, **kwargs)
 
         return wrapper
+
     return decorator
