@@ -1,10 +1,10 @@
 import json
-from base64 import b64decode, b64encode, encodebytes, decodebytes
-from pathlib import Path
+from base64 import encodebytes, decodebytes
 from hashlib import md5
+from pathlib import Path
 
 from Crypto.Cipher import ChaCha20
-from Crypto.Protocol.KDF import bcrypt
+from Crypto.Protocol.KDF import bcrypt, bcrypt_check
 from Crypto.Random import get_random_bytes
 
 from service.config.config import config

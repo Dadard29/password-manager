@@ -1,4 +1,7 @@
 from datetime import datetime
+
+from Crypto.Protocol.KDF import bcrypt_check
+
 from service.models.databaseDecrypted import DatabaseDecrypted
 from service.models.databaseFile import DatabaseFile
 
@@ -24,6 +27,10 @@ class Database(object):
         self.decrypted = None
 
         self.loaded = False
+
+    def compare_master_key(self, master_key) -> bool:
+        master_key_derived_input = self.file.key_derivation(master_key)
+        return master_key_derived_input == self.file.master_key_derived
 
     def load(self):
         decrypted_data = self.file.decrypt()

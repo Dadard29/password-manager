@@ -36,8 +36,8 @@ class Session(object):
 
     def __init__(self):
         # open the db
-        file_path = environ['DB_PATH']
-        master_key = environ['MASTER_KEY']
+        file_path = config.DB_PATH
+        master_key = config.MASTER_KEY
         self.database = Database(file_path, master_key)
 
     def to_dict(self):
@@ -48,7 +48,10 @@ class Session(object):
             timeout=self.timeout
         )
 
-    def open(self):
+    def open(self, master_key):
+        if not self.database.compare_master_key(master_key):
+            raise TypeError("wrong master key")
+
         self.created_at = datetime.now()
         self.last_activity_time = datetime.now()
 

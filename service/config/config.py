@@ -23,4 +23,4 @@ config = Config({
     "crypto": {
         "key_derivation_cost": 14
     }
-}, ['DEBUG'])
+}, ['DEBUG', 'MASTER_KEY', 'DB_PATH'])
