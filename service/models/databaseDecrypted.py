@@ -17,11 +17,11 @@ class DatabaseDecrypted(object):
 
         return self._dictionary[group]
 
-    def get_group(self, group) -> dict:
+    def get_group(self, group) -> list:
         if group not in self._dictionary.keys():
             raise KeyError("group not found")
 
-        return self._dictionary[group]
+        return list(self._dictionary[group].keys())
 
     def delete_group(self, group) -> dict:
         if group not in self._dictionary.keys():

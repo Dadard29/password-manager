@@ -84,3 +84,16 @@ def check_session_token(request, session: Session):
         return wrapper
 
     return decorator
+
+
+def update_session_activity(session: Session):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            session.update_activity()
+
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

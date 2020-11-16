@@ -1,5 +1,6 @@
 import sched
 import secrets
+import threading
 import time
 from datetime import datetime, timedelta
 
@@ -33,6 +34,11 @@ class Session(object):
 
     # the database object
     database = None
+
+    # the scheduler
+    scheduler = sched.scheduler()
+    closing_event = None
+    last_active_session = datetime.now()
 
     def __init__(self):
         # open the db
@@ -80,10 +86,20 @@ class Session(object):
         self.database.save()
         self.database.unload()
 
-        current_app.logger.info("session closed")
+        # cant use app logger cuz can be called in multi threaded context
+        print(f" {str(datetime.now())}: session closed")
+
+        self.closing_event = None
+        self.last_active_session = datetime.now()
 
     def _reschedule_closing(self):
-        # todo
+        current_app.logger.info('rescheduled session closing')
+        if self.closing_event is not None:
+            self.scheduler.cancel(self.closing_event)
+
+        self.closing_event = self.scheduler.enter(self.timeout, 1, self.close)
+        t = threading.Thread(target=self.scheduler.run)
+        t.start()
         return
 
     @staticmethod
