@@ -5,6 +5,7 @@ class Caller(object):
 
     endpoint_session = '/session'
     endpoint_database = '/database'
+    endpoint_list = '/list'
 
     def __init__(self, host, key):
         self.host = host
@@ -36,3 +37,16 @@ class Caller(object):
 
     def get_group(self, group):
         return self.http.get(self.get_url(self.endpoint_database + f'/{group}'))
+
+    def list_group(self):
+        return self.http.get(self.get_url(self.endpoint_list))
+
+    def post_group(self, group):
+        return self.http.post(self.get_url(self.endpoint_database + f'/{group}'))
+
+    def post_entry(self, group, entry, value, metas: dict):
+        body = {
+            'value': value,
+            'metas': metas
+        }
+        return self.http.post(self.get_url(self.endpoint_database + f'/{group}/{entry}'), json=body)

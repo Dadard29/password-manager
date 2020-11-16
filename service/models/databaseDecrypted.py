@@ -9,6 +9,9 @@ class DatabaseDecrypted(object):
     def get_dict(self):
         return self._dictionary
 
+    def list_groups(self) -> list:
+        return list(self._dictionary.keys())
+
     def new_group(self, group) -> dict:
         if group in self._dictionary.keys():
             raise KeyError("group already exists")

@@ -18,7 +18,7 @@ config = Config({
         "port": environ['HTTP_PORT']
     },
     "session": {
-        "timeout": 20,
+        "timeout": 60,
     },
     "crypto": {
         "key_derivation_cost": 14

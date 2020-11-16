@@ -9,6 +9,15 @@ from service.repository.globals import session_global
 database_blueprint = Blueprint("database_controller", __name__)
 
 
+@database_blueprint.route("/list", methods=['GET'])
+@check_session_token(request, session_global)
+@update_session_activity(session_global)
+def database_list():
+    return retrieved(
+        session_global.database.decrypted.list_groups()
+    )
+
+
 @database_blueprint.route("/database/<group>", methods=['POST', 'GET', 'DELETE'])
 @check_session_token(request, session_global)
 @update_session_activity(session_global)
