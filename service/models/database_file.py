@@ -1,5 +1,6 @@
 import json
 from base64 import encodebytes, decodebytes
+from datetime import datetime
 from hashlib import md5
 from pathlib import Path
 
@@ -8,6 +9,7 @@ from Crypto.Protocol.KDF import bcrypt, bcrypt_check
 from Crypto.Random import get_random_bytes
 
 from service.config.config import config
+from service.models.directory import TYPE_DIRECTORY
 
 
 class DatabaseFile(object):
@@ -56,7 +58,12 @@ class DatabaseFile(object):
         self.salt = get_random_bytes(16)
         self.master_key_derived = self.key_derivation(master_key_raw)
 
-        self.write({})
+        self.write({
+            "type": TYPE_DIRECTORY,
+            "created_at": str(datetime.now()),
+            "updated_at": str(datetime.now()),
+            "content": {}
+        })
 
     def write(self, decrypted: dict):
         """

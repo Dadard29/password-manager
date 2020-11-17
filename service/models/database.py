@@ -2,8 +2,8 @@ from datetime import datetime
 
 from Crypto.Protocol.KDF import bcrypt_check
 
-from service.models.databaseDecrypted import DatabaseDecrypted
-from service.models.databaseFile import DatabaseFile
+from service.models.database_decrypted import DatabaseDecrypted
+from service.models.database_file import DatabaseFile
 
 
 class Database(object):

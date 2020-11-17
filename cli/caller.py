@@ -32,7 +32,7 @@ class Caller(object):
     def delete_session(self):
         return self.http.delete(self.get_url(self.endpoint_session))
 
-    def get_secret(self, group, entry):
+    def get_entry(self, group, entry):
         return self.http.get(self.get_url(self.endpoint_database + f'/{group}/{entry}'))
 
     def get_group(self, group):
@@ -44,9 +44,18 @@ class Caller(object):
     def post_group(self, group):
         return self.http.post(self.get_url(self.endpoint_database + f'/{group}'))
 
+    def delete_group(self, group):
+        return self.http.delete(self.get_url(self.endpoint_database + f'/{group}'))
+
     def post_entry(self, group, entry, value, metas: dict):
         body = {
             'value': value,
             'metas': metas
         }
         return self.http.post(self.get_url(self.endpoint_database + f'/{group}/{entry}'), json=body)
+
+    def delete_entry(self, group, entry):
+        return self.http.delete(self.get_url(self.endpoint_database + f'/{group}/{entry}'))
+
+    def update_entry(self, group, entry, body: dict):
+        return self.http.put(self.get_url(self.endpoint_database + f'/{group}/{entry}'), json=body)

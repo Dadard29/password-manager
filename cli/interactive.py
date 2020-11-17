@@ -40,23 +40,6 @@ def print_list(host: str, body: list):
         print(f'- {g}')
 
 
-def get_metas() -> dict:
-    metas = dict()
-    while True:
-        print('Add a metadata to this entry (press Enter to skip)')
-        label = click.prompt('label', type=str, default='')
-        if label == '':
-            print()
-            return metas
-
-        value = click.prompt('value', type=str, default='')
-        if value == '':
-            print()
-            return metas
-
-        metas[label] = value
-
-
 class InteractiveInput(cmd.Cmd):
     def __init__(self, caller, logger: Logger):
         super().__init__()
@@ -104,7 +87,7 @@ class InteractiveInput(cmd.Cmd):
             group = words[0]
             entry = words[1]
 
-            r = self.caller.get_secret(group, entry)
+            r = self.caller.get_entry(group, entry)
             if r.status_code != 200:
                 self.logger.error(r.json()['message'])
                 return
@@ -167,15 +150,86 @@ class InteractiveInput(cmd.Cmd):
             self.logger.error('expecting a group and an entry to be created')
             return
 
+    def do_update(self, arg):
+        """
+        Updates the value of an entry: `update group1 entry1`
+        """
+        words = arg.split(' ')
+        if len(words) == 2:
+            group = words[0]
+            entry = words[1]
+
+            r = self.caller.get_entry(group, entry)
+            if r.status_code != 200:
+                self.logger.error(r.json()['message'])
+                return
+
+            e = r.json()['body']
+            if click.confirm('Update the entry value ?'):
+                value = click.prompt('Enter the entry value', hide_input=True,
+                                     type=str, confirmation_prompt=True)
+                e['value'] = value
+
+            if click.confirm('Update the metadata ?'):
+                e['metas'] = get_metas()
+
+            r = self.caller.update_entry(group, entry, e)
+            m = r.json()['message']
+            if r.status_code != 200:
+                self.logger.error(m)
+                return
+
+            self.logger.info(m)
+        else:
+            self.logger.error('expecting a group and an entry to update')
+
     def do_delete(self, arg):
         """
         Deletes an group or an entry (CAUTION: NOT RECOVERABLE):
         - `delete group1 entry1`: delete an entry
         - `delete group1`: delete all entries in group and delete the group
         """
+        words = arg.split(' ')
+
+        if arg == '':
+            self.logger.error('expecting a group and an entry to be created')
+            return
+        elif len(words) == 1:
+            """delete a group"""
+            if not click.confirm('You are going to erase a whole group. Still wanna do it ?'):
+                return
+
+            group = words[0]
+
+            r = self.caller.delete_group(group)
+            m = r.json()['message']
+            if r.status_code != 200:
+                self.logger.error(m)
+                return
+
+            self.logger.info(m)
+
+        elif len(words) == 2:
+            """deletes an entry"""
+            group = words[0]
+            entry = words[1]
+
+            r = self.caller.delete_entry(group, entry)
+            m = r.json()['message']
+            if r.status_code != 200:
+                self.logger.error(m)
+                return
+
+            self.logger.info(m)
+
+        else:
+            self.logger.error('expecting a group and an entry, see `help delete`')
+            return
 
     def do_quit(self, arg):
-        """exit the interactive shell"""
+        """
+        Exit the interactive shell
+        """
         self.logger.debug('closing session...')
 
         # check if existing session already closed
@@ -194,7 +248,9 @@ class InteractiveInput(cmd.Cmd):
         return True
 
     def do_refresh(self, arg):
-        """get a fresh new session from server"""
+        """
+        Get a fresh new session from server
+        """
         if arg == '':
             self.logger.error('expecting a master key as argument')
             return
