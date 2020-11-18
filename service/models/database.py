@@ -42,5 +42,8 @@ class Database(object):
         self.loaded = False
 
     def save(self):
+        if self.decrypted is None:
+            return
+
         self.updated_at = datetime.now()
         self.file.write(self.decrypted.get_dict())
