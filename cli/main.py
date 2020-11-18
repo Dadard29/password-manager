@@ -7,19 +7,21 @@ from requests import ConnectionError
 from caller import Caller
 from interactive import InteractiveInput
 from logger import Logger
+from parser import Parser
 
 
 @click.command()
 @click.option('--debug/--no-debug', default=False, help='activate debug mode')
 @click.option('--host', '-h', help='set the host where the service is running', required=True)
-@click.option('--key', '-k', help='your master key used to setup the service', required=True)
-def pm(debug, host, key):
+def pm(debug, host):
     """Connect to password manager"""
 
     logger = Logger(debug)
     logger.debug('debug mode on')
 
     caller = None
+
+    key = Parser.get_master_key()
 
     try:
         logger.debug('creating a new session...')

@@ -5,19 +5,10 @@ from flask import Blueprint, request
 from service.controllers.utils import check_session_token, created, retrieved, deleted, edited, not_found, internal, \
     update_session_activity, bad_request
 from service.models.entry import Entry, TYPE_ENTRY
+from service.models.utils import get_current_date
 from service.repository.globals import session_global
 
 database_blueprint = Blueprint("database_controller", __name__)
-
-
-@database_blueprint.route("/database/tree", methods=['GET'])
-@check_session_token(request, session_global)
-@update_session_activity(session_global)
-def database_tree():
-    if request.method == 'GET':
-        return retrieved(
-            session_global.database.decrypted.get_dict()
-        )
 
 
 @database_blueprint.route("/database/directory", methods=['POST', 'GET', 'DELETE'])
@@ -65,8 +56,8 @@ def database_entry():
         try:
             e = Entry(entry_name, dict(
                 type=TYPE_ENTRY,
-                created_at=str(datetime.now()),
-                updated_at=str(datetime.now()),
+                created_at=get_current_date(),
+                updated_at=get_current_date(),
                 content=request.json
             ))
             return created(

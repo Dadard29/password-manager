@@ -5,39 +5,8 @@ import click
 
 from caller import Caller
 from logger import Logger
-
-
-def print_entry(group: str, name: str, body: dict):
-    print(group.upper())
-    print('=' * len(group) + '\n')
-
-    metas = body['metas']
-    value = body['value']
-
-    data = [[name, '', value], ['metas', '', '']]
-    for k in metas.keys():
-        data.append(['', k, metas[k]])
-
-    col_width = max(len(word) for row in data for word in row) + 2  # padding
-    for row in data:
-        print("".join(word.ljust(col_width) for word in row))
-
-
-def print_group(group: str, body: list):
-    print(group.upper())
-    print('=' * len(group) + '\n')
-
-    for e in body:
-        print(f'- {e}')
-
-
-def print_list(host: str, body: list):
-    h = f'{host} - group list'.upper()
-    print(h)
-    print('=' * len(h) + '\n')
-
-    for g in body:
-        print(f'- {g}')
+from parser import Parser
+from printer import Printer
 
 
 class InteractiveInput(cmd.Cmd):
@@ -45,9 +14,12 @@ class InteractiveInput(cmd.Cmd):
         super().__init__()
         self.file = None
 
+        self.path = ''
+        self.dir_name = ''
+
         host = caller.host
-        hostname = urlparse(host).hostname
-        self.prompt = f'({hostname}) '
+        self._hostname = urlparse(host).hostname
+        self._set_prompt()
 
         self.logger = logger
 
@@ -55,176 +27,177 @@ class InteractiveInput(cmd.Cmd):
 
         self.caller = caller
 
+    def _set_prompt(self):
+        if self.path == '':
+            cwd = self.dir_name
+        else:
+            cwd = f'{self.path}/{self.dir_name}'
+
+        cwd = '/' + cwd
+
+        self.prompt = f'[{click.style(self._hostname, fg="green")}] ({click.style(cwd, fg="bright_blue")}): '
+
+    def _get_current_path(self):
+        if self.path == '':
+            return self.dir_name
+        else:
+            return f'{self.path}/{self.dir_name}'
+
+    def do_ls(self, arg):
+        """
+        List the content of the current directory
+        """
+        r = self.caller.get_directory(self.path, self.dir_name)
+        if r.status_code != 200:
+            self.logger.error(r.json()['message'])
+            return
+
+        Printer.print_ls(r.json()['body'])
+
+    def do_mkdir(self, arg):
+        """
+        Create a new directory:
+        - `mkdir dir1`: create a new directory names dir1
+        """
+        dir_name = arg
+        path = self._get_current_path()
+
+        r = self.caller.post_directory(path, dir_name)
+        if r.status_code != 201:
+            self.logger.error(r.json()['message'])
+            return
+
+        self.logger.info(f'directory `{dir_name}` created')
+
+    def do_rmdir(self, arg):
+        """
+        Delete a directory AND ALL THE CONTENT
+        - `rmdir dir1`: delete this directory, all
+        the subdirectories and all the entries
+        """
+
+        dir_name = arg
+
+        path = self._get_current_path()
+
+        r = self.caller.delete_directory(path, dir_name)
+        if r.status_code != 200:
+            self.logger.error(r.json()['message'])
+            return
+
+        self.logger.info(f'directory `{dir_name}` deleted')
+
+    def do_cd(self, arg):
+        """
+        Change the current directory:
+        - `cd dir_1`: change to directory `dir_1`
+        - `cd ..`: go to parent directory
+        - `cd`: go to root directory
+        """
+
+        # goes at root
+        if arg == '':
+            new_path = ''
+            new_dir_name = ''
+
+        # goes backward
+        elif arg == '..':
+            ps = self.path.split('/')
+            borne = len(ps) - 1
+            new_dir_name = ps[borne]
+            new_path = '/'.join(ps[:borne])
+
+        # goes forward
+        else:
+            new_path = self._get_current_path()
+
+            new_dir_name = arg
+
+        r = self.caller.get_directory(new_path, new_dir_name)
+        if r.status_code != 200:
+            self.logger.error(r.json()['message'])
+            return
+
+        self.logger.debug(f'changed to directory {new_dir_name}')
+
+        self.path = new_path
+        self.dir_name = new_dir_name
+        self._set_prompt()
+
     def do_get(self, arg):
         """
-        Get secrets and groups content:
-        - `get`: get the list of the groups
-        - `get group1`: get the list of the entries of a group
-        - `get group1 entry1`: get a specific entry value
+        Get an entry value and metadata from the current directory:
+        - `get entry1`: get entry1 value
         """
-        words = arg.split(' ')
+        entry_name = arg
 
-        if arg == '':
-            """print the list of groups"""
-            r = self.caller.list_group()
-            if r.status_code != 200:
-                self.logger.error(r.json()['message'])
-                return
-
-            print_list(self.prompt, r.json()['body'])
-        elif len(words) == 1:
-            """list the entry list of a group"""
-            group = words[0]
-            r = self.caller.get_group(group)
-            if r.status_code != 200:
-                self.logger.error(r.json()['message'])
-                return
-
-            print_group(group, r.json()['body'])
-
-        elif len(words) == 2:
-            """print an entry"""
-            group = words[0]
-            entry = words[1]
-
-            r = self.caller.get_entry(group, entry)
-            if r.status_code != 200:
-                self.logger.error(r.json()['message'])
-                return
-
-            print_entry(group, entry, r.json()['body'])
+        if self.path == '':
+            path = self.dir_name
         else:
-            self.logger.error('expecting an secret name and a group')
+            path = f'{self.path}/{self.dir_name}'
+
+        r = self.caller.get_entry(path, entry_name)
+        if r.status_code != 200:
+            self.logger.error(r.json()['message'])
             return
 
-    def do_create(self, arg):
+        Printer.print_entry(r.json()['body'])
+
+    def do_set(self, arg):
         """
-        Creates new entry:
-        - `create group1`: creates a new group if it does not exist
-        - `create group1 entry1`: creates a new group if needed and
-        a new entry if it does not existss
+        Create a new entry, or update an existing one:
+        - `set entry1`: you will be asked for its value and the metadata
         """
-        words = arg.split(' ')
-        if arg == '':
-            self.logger.error('expecting a group and an entry to be created')
+        entry_name = arg
+        if entry_name == '':
+            self.logger.error('expecting an entry name as parameter')
             return
-        elif len(words) == 1:
-            """create a group"""
-            group = words[0]
-            r = self.caller.post_group(group)
+
+        path = self._get_current_path()
+
+        entry_exists_r = self.caller.get_entry(path, entry_name)
+        entry_exists = entry_exists_r.status_code == 200
+
+        entry_value = Parser.get_entry_value()
+
+        if not entry_exists:
+            metas = Parser.get_metas()
+
+            r = self.caller.post_entry(path, entry_name, entry_value, metas)
             if r.status_code != 201:
                 self.logger.error(r.json()['message'])
                 return
 
-            self.logger.info(r.json()['message'])
-            return
-        elif len(words) == 2:
-            """creates an entry"""
-            group = words[0]
-            entry = words[1]
-            r = self.caller.get_group(group)
-            if r.status_code != 200:
-                # creating a new group cuz it doesnt exist yet
-                r = self.caller.post_group(group)
-                if r.status_code != 201:
-                    self.logger.error('error creating a new group: '
-                                      + r.json()['message'])
-                    return
-
-            else:
-                self.logger.debug('group already exists')
-
-            value = click.prompt('Enter the entry value', hide_input=True,
-                                 type=str, confirmation_prompt=True)
-            metas = get_metas()
-
-            r = self.caller.post_entry(group, entry, value, metas)
-            if r.status_code != 201:
-                self.logger.error('error creating a new entry'
-                                  + r.json()['message'])
-                return
-
-            self.logger.info('entry created')
-
+            self.logger.info(f'entry `{entry_name}` created')
         else:
-            self.logger.error('expecting a group and an entry to be created')
-            return
+            metas = entry_exists_r.json()['body']['content']['metas']
+            Parser.update_metas(metas)
 
-    def do_update(self, arg):
-        """
-        Updates the value of an entry: `update group1 entry1`
-        """
-        words = arg.split(' ')
-        if len(words) == 2:
-            group = words[0]
-            entry = words[1]
-
-            r = self.caller.get_entry(group, entry)
+            r = self.caller.update_entry(path, entry_name, entry_value, metas)
             if r.status_code != 200:
                 self.logger.error(r.json()['message'])
                 return
 
-            e = r.json()['body']
-            if click.confirm('Update the entry value ?'):
-                value = click.prompt('Enter the entry value', hide_input=True,
-                                     type=str, confirmation_prompt=True)
-                e['value'] = value
+            self.logger.info(f'entry `{entry_name}` updated')
 
-            if click.confirm('Update the metadata ?'):
-                e['metas'] = get_metas()
-
-            r = self.caller.update_entry(group, entry, e)
-            m = r.json()['message']
-            if r.status_code != 200:
-                self.logger.error(m)
-                return
-
-            self.logger.info(m)
-        else:
-            self.logger.error('expecting a group and an entry to update')
-
-    def do_delete(self, arg):
+    def do_rm(self, arg):
         """
-        Deletes an group or an entry (CAUTION: NOT RECOVERABLE):
-        - `delete group1 entry1`: delete an entry
-        - `delete group1`: delete all entries in group and delete the group
+        Remove an entry:
+        - `rm entry1`: delete permanently this entry and its metadata
         """
-        words = arg.split(' ')
-
-        if arg == '':
-            self.logger.error('expecting a group and an entry to be created')
+        entry_name = arg
+        if entry_name == '':
+            self.logger.error('expecting an entry name as parameter')
             return
-        elif len(words) == 1:
-            """delete a group"""
-            if not click.confirm('You are going to erase a whole group. Still wanna do it ?'):
-                return
 
-            group = words[0]
+        path = self._get_current_path()
 
-            r = self.caller.delete_group(group)
-            m = r.json()['message']
-            if r.status_code != 200:
-                self.logger.error(m)
-                return
-
-            self.logger.info(m)
-
-        elif len(words) == 2:
-            """deletes an entry"""
-            group = words[0]
-            entry = words[1]
-
-            r = self.caller.delete_entry(group, entry)
-            m = r.json()['message']
-            if r.status_code != 200:
-                self.logger.error(m)
-                return
-
-            self.logger.info(m)
-
-        else:
-            self.logger.error('expecting a group and an entry, see `help delete`')
+        r = self.caller.delete_entry(path, entry_name)
+        if r.status_code != 200:
+            self.logger.error(r.json()['message'])
             return
+
+        self.logger.info(f'entry `{entry_name}` deleted')
 
     def do_quit(self, arg):
         """
@@ -251,11 +224,8 @@ class InteractiveInput(cmd.Cmd):
         """
         Get a fresh new session from server
         """
-        if arg == '':
-            self.logger.error('expecting a master key as argument')
-            return
 
-        key = arg
+        key = Parser.get_master_key()
         current_host = self.caller.host
 
         try:

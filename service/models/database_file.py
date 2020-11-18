@@ -10,6 +10,7 @@ from Crypto.Random import get_random_bytes
 
 from service.config.config import config
 from service.models.directory import TYPE_DIRECTORY
+from service.models.utils import get_current_date
 
 
 class DatabaseFile(object):
@@ -60,8 +61,8 @@ class DatabaseFile(object):
 
         self.write({
             "type": TYPE_DIRECTORY,
-            "created_at": str(datetime.now()),
-            "updated_at": str(datetime.now()),
+            "created_at": get_current_date(),
+            "updated_at": get_current_date(),
             "content": {}
         })
 

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from service.models.entry import TYPE_ENTRY, Entry
+from service.models.utils import get_current_date
 
 TYPE_DIRECTORY = 'directory'
 
@@ -88,7 +89,7 @@ class Directory(object):
             raise KeyError(f'entry `{entry_name}` does not exists')
 
         e = self.get_entry(entry_name)
-        e.updated_at = str(datetime.now())
+        e.updated_at = get_current_date()
         e.value = entry_content['value']
         e.metas = entry_content['metas']
 
@@ -110,8 +111,8 @@ class Directory(object):
 
         new_directory = Directory(directory_name, dict(
             type=TYPE_DIRECTORY,
-            created_at=str(datetime.now()),
-            updated_at=str(datetime.now()),
+            created_at=get_current_date(),
+            updated_at=get_current_date(),
             content=dict()
         ))
 
@@ -149,7 +150,12 @@ class Directory(object):
                 name=o.name,
                 created_at=o.created_at,
                 updated_at=o.updated_at,
+                size=str(o.count()) if o.type == TYPE_DIRECTORY else '-'
             ))
 
-        return ls
+        sorted_ls = sorted(ls, key=lambda i: i['type'])
+        return sorted_ls
+
+    def count(self) -> int:
+        return len(self._content.keys())
 

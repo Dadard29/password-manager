@@ -2,14 +2,21 @@ import click
 
 
 class Parser(object):
-    def get_group_entry(self):
-        return
 
     @staticmethod
-    def get_metas() -> dict:
-        metas = dict()
+    def get_master_key():
+        return click.prompt('master key', hide_input=True, type=str)
+
+    @staticmethod
+    def get_entry_value():
+        return click.prompt(
+            'Enter the entry\'s value', hide_input=True,
+            confirmation_prompt=True)
+
+    @staticmethod
+    def update_metas(metas) -> dict:
         while True:
-            print('Add a metadata to this entry (press Enter to skip)')
+            print('Add or update a metadata (press `enter` to skip)')
             label = click.prompt('label', type=str, default='')
             if label == '':
                 print()
@@ -21,3 +28,7 @@ class Parser(object):
                 return metas
 
             metas[label] = value
+
+    @staticmethod
+    def get_metas() -> dict:
+        return Parser.update_metas({})
