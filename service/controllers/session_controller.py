@@ -24,6 +24,8 @@ def session_post():
         })
     except TypeError as te:
         return internal(te)
+    except UnicodeDecodeError:
+        return internal("failed to open session, decryption failed")
 
 
 # close the existing session

@@ -43,8 +43,7 @@ class Session(object):
     def __init__(self):
         # open the db
         file_path = config.DB_PATH
-        master_key = config.MASTER_KEY
-        self.database = Database(file_path, master_key)
+        self.database = Database(file_path)
 
     def to_dict(self):
         return dict(
@@ -55,16 +54,14 @@ class Session(object):
         )
 
     def open(self, master_key):
-        if not self.database.compare_master_key(master_key):
-            raise TypeError("wrong master key")
+
+        self.database.load(master_key)
 
         self.created_at = datetime.now()
         self.last_activity_time = datetime.now()
 
         self.is_active = True
         self.token = self._generate_token()
-
-        self.database.load()
 
         # schedule automated closing
         self._reschedule_closing()

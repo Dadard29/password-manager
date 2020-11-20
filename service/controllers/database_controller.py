@@ -33,6 +33,8 @@ def database_directories():
             )
         except KeyError as k:
             return not_found(k)
+        except TypeError as te:
+            return internal(te)
 
     elif request.method == 'DELETE':
         try:
@@ -73,6 +75,8 @@ def database_entry():
             )
         except KeyError as k:
             return not_found(k)
+        except TypeError as te:
+            return internal(te)
 
     elif request.method == 'PUT':
         try:
@@ -91,3 +95,5 @@ def database_entry():
             )
         except KeyError as k:
             return not_found(k)
+        except TypeError as te:
+            return internal(te)

@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from Crypto.Protocol.KDF import bcrypt_check
-
 from service.models.database_decrypted import DatabaseDecrypted
 from service.models.database_file import DatabaseFile
 
@@ -19,25 +17,22 @@ class Database(object):
     # last save time, lost if the service restart
     updated_at = datetime.now()
 
-    def __init__(self, file_path, master_key):
+    def __init__(self, file_path):
         # open database file
-        self.file = DatabaseFile(file_path, master_key)
+        self.file = DatabaseFile(file_path)
 
         # only load decrypted values when asked to
         self.decrypted = None
 
         self.loaded = False
 
-    def compare_master_key(self, master_key) -> bool:
-        master_key_derived_input = self.file.key_derivation(master_key)
-        return master_key_derived_input == self.file.master_key_derived
-
-    def load(self):
-        decrypted_data = self.file.decrypt()
+    def load(self, master_key):
+        decrypted_data = self.file.load(master_key)
         self.decrypted = DatabaseDecrypted(decrypted_data)
         self.loaded = True
 
     def unload(self):
+        self.file.unload()
         self.decrypted = None
         self.loaded = False
 
