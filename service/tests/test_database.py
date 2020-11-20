@@ -1,6 +1,6 @@
 import unittest
 
-from service.models.database import Database
+from models.database import Database
 
 p = "./"
 master_key = "master_key"

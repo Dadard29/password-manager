@@ -1,7 +1,7 @@
 # responses
 from functools import wraps
 
-from service.models.session import Session
+from models.session import Session
 
 from flask import current_app
 

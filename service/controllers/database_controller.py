@@ -2,11 +2,11 @@ from datetime import datetime
 
 from flask import Blueprint, request
 
-from service.controllers.utils import check_session_token, created, retrieved, deleted, edited, not_found, internal, \
+from controllers.utils import check_session_token, created, retrieved, deleted, edited, not_found, internal, \
     update_session_activity, bad_request
-from service.models.entry import Entry, TYPE_ENTRY
-from service.models.utils import get_current_date
-from service.repository.globals import session_global
+from models.entry import Entry, TYPE_ENTRY
+from models.utils import get_current_date
+from repository.globals import session_global
 
 database_blueprint = Blueprint("database_controller", __name__)
 

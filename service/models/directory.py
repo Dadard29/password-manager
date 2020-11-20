@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from service.models.entry import TYPE_ENTRY, Entry
-from service.models.utils import get_current_date
+from models.entry import TYPE_ENTRY, Entry
+from models.utils import get_current_date
 
 TYPE_DIRECTORY = 'directory'
 

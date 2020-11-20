@@ -10,8 +10,8 @@ from os import environ
 
 from flask import current_app
 
-from service.config.config import config
-from service.models.database import Database
+from config.config import config
+from models.database import Database
 
 
 class Session(object):

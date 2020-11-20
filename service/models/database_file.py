@@ -8,9 +8,9 @@ from Crypto.Cipher import ChaCha20
 from Crypto.Protocol.KDF import bcrypt, bcrypt_check
 from Crypto.Random import get_random_bytes
 
-from service.config.config import config
-from service.models.directory import TYPE_DIRECTORY
-from service.models.utils import get_current_date
+from config.config import config
+from models.directory import TYPE_DIRECTORY
+from models.utils import get_current_date
 
 
 class DatabaseFile(object):

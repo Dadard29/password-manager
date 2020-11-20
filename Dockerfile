@@ -1,4 +1,4 @@
-FROM python:3-alpine
+FROM python:3
 
 WORKDIR /usr/src/app
 
@@ -7,4 +7,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", ".service/main.py"]
+RUN touch service/db/default.db
+
+ENV DEBUG=0
+ENV HTTP_HOST=0.0.0.0
+ENV HTTP_PORT=5000
+ENV DB_PATH=service/db/default.db
+
+CMD ["python", "./service/main.py"]

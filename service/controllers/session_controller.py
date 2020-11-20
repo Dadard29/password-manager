@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 
-from service.controllers.utils import created, bad_request, retrieved, deleted, check_session_token, internal
-from service.repository.globals import session_global
+from controllers.utils import created, bad_request, retrieved, deleted, check_session_token, internal
+from repository.globals import session_global
 
 session_blueprint = Blueprint("session_controller", __name__)
 

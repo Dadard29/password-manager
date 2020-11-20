@@ -1,9 +1,9 @@
 from flask import Flask
-from service.config.config import config
+from config.config import config
 
 # import the controllers
-from service.controllers.database_controller import database_blueprint
-from service.controllers.session_controller import session_blueprint
+from controllers.database_controller import database_blueprint
+from controllers.session_controller import session_blueprint
 
 app = Flask(config.app['name'])
 

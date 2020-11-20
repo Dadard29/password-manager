@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from service.models.database_decrypted import DatabaseDecrypted
-from service.models.database_file import DatabaseFile
+from models.database_decrypted import DatabaseDecrypted
+from models.database_file import DatabaseFile
 
 
 class Database(object):

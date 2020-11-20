@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from service.models.directory import Directory, TYPE_DIRECTORY
-from service.models.entry import Entry
+from models.directory import Directory, TYPE_DIRECTORY
+from models.entry import Entry
 
 
 class DatabaseDecrypted(object):
