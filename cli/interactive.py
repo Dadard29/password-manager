@@ -4,13 +4,14 @@ from urllib.parse import urlparse
 import click
 
 from caller import Caller
+from entry import Entry
 from logger import Logger
-from parser import Parser
+from parsing import Parser
 from printer import Printer
 
 
 class InteractiveInput(cmd.Cmd):
-    def __init__(self, caller, logger: Logger):
+    def __init__(self, caller, logger: Logger, master_key_derived: bytes):
         super().__init__()
         self.file = None
 
@@ -26,6 +27,7 @@ class InteractiveInput(cmd.Cmd):
         self.intro = f'*connected*, type help or ? for a list of commands\n'
 
         self.caller = caller
+        self.master_key_derived = master_key_derived
 
     def _set_prompt(self):
         if self.path == '':
@@ -141,7 +143,17 @@ class InteractiveInput(cmd.Cmd):
             self.logger.error(r.json()['message'])
             return
 
-        Printer.print_entry(r.json()['body'])
+        entry = Entry(r.json()['body'])
+
+        if entry.created_with_cli:
+            ciphered_nonce = entry.value
+            plain_value = Parser.decipher_decode(ciphered_nonce, self.master_key_derived)
+            Printer.print_entry_encrypted(
+                entry, plain_value)
+        else:
+            self.logger.warning('this entry has not been created with this CLI, the value is transferred to the '
+                                'remote server in plain text')
+            Printer.print_entry(entry)
 
     def do_set(self, arg):
         """
@@ -158,10 +170,12 @@ class InteractiveInput(cmd.Cmd):
         entry_exists_r = self.caller.get_entry(path, entry_name)
         entry_exists = entry_exists_r.status_code == 200
 
-        entry_value = Parser.get_entry_value()
-
         if not entry_exists:
+            # creates a new one
+            entry_value = Parser.get_entry_value_from_input(self.master_key_derived)
+
             metas = Parser.get_metas()
+            metas['created_with_cli'] = "true"
 
             r = self.caller.post_entry(path, entry_name, entry_value, metas)
             if r.status_code != 201:
@@ -170,10 +184,19 @@ class InteractiveInput(cmd.Cmd):
 
             self.logger.info(f'entry `{entry_name}` created')
         else:
-            metas = entry_exists_r.json()['body']['content']['metas']
-            Parser.update_metas(metas)
+            # update the existing one
+            entry = Entry(entry_exists_r.json()['body'])
 
-            r = self.caller.update_entry(path, entry_name, entry_value, metas)
+            if click.confirm('Update the value of this entry ?'):
+                entry_value = Parser.get_entry_value_from_input(self.master_key_derived)
+
+                entry.metas['created_with_cli'] = "true"
+            else:
+                entry_value = entry.value
+
+            Parser.update_metas(entry.metas)
+
+            r = self.caller.update_entry(path, entry_name, entry_value, entry.metas)
             if r.status_code != 200:
                 self.logger.error(r.json()['message'])
                 return

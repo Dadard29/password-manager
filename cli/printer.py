@@ -1,5 +1,7 @@
 import click
 
+from entry import Entry
+
 
 class Printer(object):
     @staticmethod
@@ -18,25 +20,26 @@ class Printer(object):
         print("")
 
     @staticmethod
-    def print_entry(body: dict):
-        created_at = body['created_at']
-        updated_at = body['updated_at']
+    def print_entry_encrypted(entry: Entry, plain_value: str):
+        entry.value = plain_value
+        Printer.print_entry(entry)
 
-        content = body['content']
-        metas = content['metas']
-        value = content['value']
+    @staticmethod
+    def print_entry(entry: Entry):
 
-        print('-' * len(value))
-        print(click.style(value, bold=True))
-        print('-' * len(value))
+        underline = '-' * len(entry.value)
+        print(underline)
+        print(entry.value)
+        print(underline)
 
+        label_color = 'bright_black'
         data = [
-            ['created at', created_at],
-            ['updated at', updated_at],
+            [click.style('created at', fg=label_color), entry.created_at],
+            [click.style('updated at', fg=label_color), entry.updated_at],
             ['-', '-']
         ]
-        for k in metas.keys():
-            data.append([k, metas[k]])
+        for k in entry.metas.keys():
+            data.append([click.style(k, fg=label_color), entry.metas[k]])
 
         Printer._print_columns(data)
 
