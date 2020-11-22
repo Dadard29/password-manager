@@ -37,7 +37,7 @@ class InteractiveInput(cmd.Cmd):
 
         cwd = '/' + cwd
 
-        self.prompt = f'[{click.style(self._hostname, fg="green")}] ({click.style(cwd, fg="bright_blue")}): '
+        self.prompt = f'[{self._hostname}] ({cwd}): '
 
     def _get_current_path(self):
         if self.path == '':
