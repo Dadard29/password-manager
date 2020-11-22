@@ -36,7 +36,7 @@ def session_delete():
     d = session_global.to_dict()
     d['is_active'] = False
 
-    session_global.close()
+    session_global.close_manually()
 
     return deleted(d, "session closed")
 

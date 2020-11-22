@@ -72,7 +72,15 @@ class Session(object):
         self.last_activity_time = datetime.now()
         self._reschedule_closing()
 
+    def close_manually(self):
+        if self.closing_event is not None:
+            self.scheduler.cancel(self.closing_event)
+            self.close()
+
     def close(self):
+
+        self.closing_event = None
+
         # reset to default values
         self.is_active = False
         self.token = None
@@ -86,7 +94,6 @@ class Session(object):
         # cant use app logger cuz can be called in multi threaded context
         print(f" {str(datetime.now())}: session closed")
 
-        self.closing_event = None
         self.last_active_session = datetime.now()
 
     def _reschedule_closing(self):
