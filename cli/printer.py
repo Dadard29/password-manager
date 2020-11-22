@@ -6,18 +6,18 @@ from entry import Entry
 class Printer(object):
     @staticmethod
     def _print_title(title: str):
-        print(title.upper())
-        print('=' * len(title))
+        click.echo(title.upper())
+        click.echo('=' * len(title))
 
     @staticmethod
     def _print_columns(data: list):
-        print("")
+        click.echo("")
 
         col_width = max(len(word) for row in data for word in row) + 2  # padding
         for row in data:
-            print("".join(word.ljust(col_width) for word in row))
+            click.echo("".join(word.ljust(col_width) for word in row))
 
-        print("")
+        click.echo("")
 
     @staticmethod
     def print_entry_encrypted(entry: Entry, plain_value: str):
@@ -28,9 +28,9 @@ class Printer(object):
     def print_entry(entry: Entry):
 
         underline = '-' * len(entry.value)
-        print(underline)
-        print(entry.value)
-        print(underline)
+        click.echo(underline)
+        click.echo(entry.value)
+        click.echo(underline)
 
         label_color = 'bright_black'
         data = [

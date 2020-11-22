@@ -56,7 +56,7 @@ class Parser(object):
     @staticmethod
     def update_metas(metas) -> dict:
         while True:
-            print('Add or update a metadata (press `enter` to skip)')
+            click.echo('Add or update a metadata (press `enter` to skip)')
             label = click.prompt('label', type=str, default='')
             if label == '':
                 break
@@ -67,7 +67,7 @@ class Parser(object):
 
             metas[label] = value
 
-        print()
+        click.echo()
         return metas
 
     @staticmethod
