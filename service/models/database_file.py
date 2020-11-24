@@ -12,6 +12,9 @@ from config.config import config
 from models.directory import TYPE_DIRECTORY
 from models.utils import get_current_date
 
+SALT_LENGTH = 16
+NONCE_LENGTH = 12
+
 
 class DatabaseFile(object):
     # the path where to find the database file
@@ -50,20 +53,16 @@ class DatabaseFile(object):
     def load(self, master_key_raw: str):
 
         initialized = True
-        with self.path.open("r") as f:
+        with self.path.open("rb") as f:
             content = f.read()
-            if content == "":
+            if content == b'':
                 initialized = False
-
-        def base64_decode(att: str) -> bytes:
-            return decodebytes(att.encode())
 
         if initialized:
             # get the file fields
-            lines = content.split('\n')
-            self.salt = base64_decode(lines[0])
-            self.nonce = base64_decode(lines[2])
-            self.encrypted = base64_decode("".join(lines[4:]))
+            self.salt = content[:SALT_LENGTH]
+            self.nonce = content[SALT_LENGTH:SALT_LENGTH + NONCE_LENGTH]
+            self.encrypted = content[SALT_LENGTH + NONCE_LENGTH:]
 
             self.master_key_derived = self.key_derivation(master_key_raw)
         else:
@@ -73,7 +72,7 @@ class DatabaseFile(object):
         return self._decrypt()
 
     def reset(self, master_key_raw):
-        self.salt = get_random_bytes(16)
+        self.salt = get_random_bytes(SALT_LENGTH)
         self.master_key_derived = self.key_derivation(master_key_raw)
 
         self.write({
@@ -91,14 +90,9 @@ class DatabaseFile(object):
         """
         self._encrypt(decrypted)
 
-        def base64_encode(att: bytes) -> str:
-            return encodebytes(att).decode()
+        content = self.salt + self.nonce + self.encrypted
 
-        content = base64_encode(self.salt) + "\n" \
-            + base64_encode(self.nonce) + "\n" \
-            + base64_encode(self.encrypted)
-
-        with self.path.open("w") as f:
+        with self.path.open("wb") as f:
             f.write(content)
 
     def key_derivation(self, master_key_raw) -> bytes:
@@ -120,7 +114,7 @@ class DatabaseFile(object):
         """
         decrypted_data: bytes = json.dumps(decrypted).encode()
 
-        self.nonce = get_random_bytes(12)
+        self.nonce = get_random_bytes(NONCE_LENGTH)
         cipher = ChaCha20.new(key=self.master_key_derived, nonce=self.nonce)
         self.encrypted = cipher.encrypt(decrypted_data)
 
