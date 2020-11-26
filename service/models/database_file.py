@@ -1,18 +1,13 @@
 import json
-from base64 import encodebytes, decodebytes, b64decode, b64encode
-from datetime import datetime
 from hashlib import md5
 from pathlib import Path
 
 from Crypto.Cipher import ChaCha20
-from Crypto.Protocol.KDF import bcrypt, bcrypt_check
 from Crypto.Random import get_random_bytes
 
-from config.config import config
 from models.directory import TYPE_DIRECTORY
 from models.utils import get_current_date
 
-SALT_LENGTH = 16
 NONCE_LENGTH = 12
 
 
@@ -20,8 +15,8 @@ class DatabaseFile(object):
     # the path where to find the database file
     path: Path = None
 
-    # the master key derived
-    master_key_derived: bytes = None
+    # key used for enc/dec
+    key: bytes = None
 
     # salt used for key derivation
     salt: bytes = None
@@ -45,12 +40,11 @@ class DatabaseFile(object):
         self.unload()
 
     def unload(self):
-        self.salt = b''
         self.nonce = b''
         self.encrypted = b''
-        self.master_key_derived = b''
+        self.key = b''
 
-    def load(self, master_key_raw: str):
+    def load(self, key_raw: int):
 
         initialized = True
         with self.path.open("rb") as f:
@@ -58,23 +52,19 @@ class DatabaseFile(object):
             if content == b'':
                 initialized = False
 
+        self.key = self.key_hash(key_raw)
+
         if initialized:
             # get the file fields
-            self.salt = content[:SALT_LENGTH]
-            self.nonce = content[SALT_LENGTH:SALT_LENGTH + NONCE_LENGTH]
-            self.encrypted = content[SALT_LENGTH + NONCE_LENGTH:]
-
-            self.master_key_derived = self.key_derivation(master_key_raw)
+            self.nonce = content[:NONCE_LENGTH]
+            self.encrypted = content[NONCE_LENGTH:]
         else:
             # if file empty, init a new db
-            self.reset(master_key_raw)
+            self.reset()
 
         return self._decrypt()
 
-    def reset(self, master_key_raw):
-        self.salt = get_random_bytes(SALT_LENGTH)
-        self.master_key_derived = self.key_derivation(master_key_raw)
-
+    def reset(self):
         self.write({
             "type": TYPE_DIRECTORY,
             "created_at": get_current_date(),
@@ -90,21 +80,23 @@ class DatabaseFile(object):
         """
         self._encrypt(decrypted)
 
-        content = self.salt + self.nonce + self.encrypted
+        content = self.nonce + self.encrypted
 
         with self.path.open("wb") as f:
             f.write(content)
 
-    def key_derivation(self, master_key_raw) -> bytes:
+    @staticmethod
+    def key_hash(key_raw: int) -> bytes:
         """
-        derive master key to make dictionary attack computational difficult
-        :param master_key_raw: the master key
-        :return: the derived master key
+        hash key raw to hash to enable decryption
+        :param key_raw: the master key
+        :return: the hashed master key
         """
-        d = bcrypt(master_key_raw, config.crypto['key_derivation_cost'], salt=self.salt)
 
-        # use md5 to make the derived key 32 byte length for ChaCha algorithm
-        return md5(d).hexdigest().encode()
+        # use md5 to make the key 32 bytes length for ChaCha algorithm
+        return md5(
+            str(key_raw).encode()
+        ).hexdigest().encode()
 
     def _encrypt(self, decrypted: dict) -> (bytes, bytes):
         """
@@ -115,10 +107,10 @@ class DatabaseFile(object):
         decrypted_data: bytes = json.dumps(decrypted).encode()
 
         self.nonce = get_random_bytes(NONCE_LENGTH)
-        cipher = ChaCha20.new(key=self.master_key_derived, nonce=self.nonce)
+        cipher = ChaCha20.new(key=self.key, nonce=self.nonce)
         self.encrypted = cipher.encrypt(decrypted_data)
 
     def _decrypt(self) -> dict:
-        cipher = ChaCha20.new(key=self.master_key_derived, nonce=self.nonce)
+        cipher = ChaCha20.new(key=self.key, nonce=self.nonce)
         plain = cipher.decrypt(self.encrypted)
         return json.loads(plain)

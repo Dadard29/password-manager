@@ -2,10 +2,10 @@ import click
 import requests
 from requests import ConnectionError
 
-from caller import Caller
-from interactive import InteractiveInput
-from logger import Logger
-from parsing import Parser
+from .. import caller as cl
+from cli.input import Input
+from cli.interactive import InteractiveInput
+from cli.logger import Logger
 
 
 def check_up(host):
@@ -23,7 +23,7 @@ def pm(debug, host):
     logger.debug('debug mode on')
 
     caller = None
-    key = None
+    p_key_derived = None
 
     try:
         if not check_up(host):
@@ -31,10 +31,10 @@ def pm(debug, host):
         else:
             logger.debug('host up')
 
-        key = Parser.get_master_key()
+        key, p_key_derived = Input.get_public_key()
 
         logger.debug('creating a new session...')
-        caller = Caller(host, key)
+        caller = cl.Caller(host, key)
         logger.info(f'session created')
 
     except ConnectionError as ce:
@@ -43,8 +43,7 @@ def pm(debug, host):
         logger.error(f'error creating session: wrong input - {str(te)}')
 
     if caller is not None:
-        master_key_derived = Parser.derive_master_key(key)
-        InteractiveInput(caller, logger, master_key_derived).cmdloop()
+        InteractiveInput(caller, logger, p_key_derived).cmdloop()
 
 
 if __name__ == "__main__":

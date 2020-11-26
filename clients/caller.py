@@ -6,12 +6,12 @@ class Caller(object):
     endpoint_directory = '/database/directory'
     endpoint_entry = '/database/entry'
 
-    def __init__(self, host, key):
+    def __init__(self, host, key: int):
         self.host = host
         self.http = Session()
         r = self.http.post(
             self._get_url(self.endpoint_session),
-            headers={'key': key}
+            headers={'key': str(key)}
         )
         if r.status_code != 201:
             raise TypeError(r.json()['message'])

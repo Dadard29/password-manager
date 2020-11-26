@@ -26,8 +26,8 @@ class Database(object):
 
         self.loaded = False
 
-    def load(self, master_key):
-        decrypted_data = self.file.load(master_key)
+    def load(self, key: int):
+        decrypted_data = self.file.load(key)
         self.decrypted = DatabaseDecrypted(decrypted_data)
         self.loaded = True
 

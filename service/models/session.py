@@ -35,6 +35,9 @@ class Session(object):
     # the database object
     database = None
 
+    # the diffie-hellman private secret of service side (Bob)
+    df_private_key = None
+
     # the scheduler
     scheduler = sched.scheduler()
     closing_event = None
@@ -43,6 +46,7 @@ class Session(object):
     def __init__(self):
         # open the db
         file_path = config.DB_PATH
+        self.df_private_key = int(config.DF_PRIVATE_KEY)
         self.database = Database(file_path)
 
     def to_dict(self):
@@ -53,9 +57,23 @@ class Session(object):
             timeout=self.timeout
         )
 
-    def open(self, master_key):
+    @staticmethod
+    def _generate_token():
+        if config.DEBUG == "1":
+            return "session_token"
 
-        self.database.load(master_key)
+        return secrets.token_hex(16)
+
+    def _gen_diffie_hellman_shared_secret(self, public_key: int) -> int:
+        prime = config.crypto['prime']
+        shared_secret = pow(public_key, self.df_private_key, prime)
+
+        return shared_secret
+
+    def open(self, public_key: int):
+
+        key_raw = self._gen_diffie_hellman_shared_secret(public_key)
+        self.database.load(key_raw)
 
         self.created_at = datetime.now()
         self.last_activity_time = datetime.now()
@@ -105,10 +123,3 @@ class Session(object):
         t = threading.Thread(target=self.scheduler.run)
         t.start()
         return
-
-    @staticmethod
-    def _generate_token():
-        if config.DEBUG == "1":
-            return "session_token"
-
-        return secrets.token_hex(16)

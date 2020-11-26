@@ -11,7 +11,7 @@ from printer import Printer
 
 
 class InteractiveInput(cmd.Cmd):
-    def __init__(self, caller, logger: Logger, master_key_derived: bytes):
+    def __init__(self, caller, logger: Logger, p_key_derived: bytes):
         super().__init__()
         self.file = None
 
@@ -27,7 +27,8 @@ class InteractiveInput(cmd.Cmd):
         self.intro = f'*connected*, type help or ? for a list of commands\n'
 
         self.caller = caller
-        self.master_key_derived = master_key_derived
+
+        self.p_key_derived = p_key_derived
 
     def _set_prompt(self):
         if self.path == '':
@@ -147,7 +148,7 @@ class InteractiveInput(cmd.Cmd):
 
         if entry.created_with_cli:
             ciphered_nonce = entry.value
-            plain_value = Parser.decipher_decode(ciphered_nonce, self.master_key_derived)
+            plain_value = Parser.decipher_decode(ciphered_nonce, self.p_key_derived)
             Printer.print_entry_encrypted(
                 entry, plain_value)
         else:
@@ -172,7 +173,7 @@ class InteractiveInput(cmd.Cmd):
 
         if not entry_exists:
             # creates a new one
-            entry_value = Parser.get_entry_value_from_input(self.master_key_derived)
+            entry_value = Parser.get_entry_value_from_input(self.p_key_derived)
 
             metas = Parser.get_metas()
             metas['created_with_cli'] = "true"
@@ -188,7 +189,7 @@ class InteractiveInput(cmd.Cmd):
             entry = Entry(entry_exists_r.json()['body'])
 
             if click.confirm('Update the value of this entry ?'):
-                entry_value = Parser.get_entry_value_from_input(self.master_key_derived)
+                entry_value = Parser.get_entry_value_from_input(self.p_key_derived)
 
                 entry.metas['created_with_cli'] = "true"
             else:
@@ -248,7 +249,7 @@ class InteractiveInput(cmd.Cmd):
         Get a fresh new session from server
         """
 
-        key = Parser.get_master_key()
+        key = Parser.get_public_key()
         current_host = self.caller.host
 
         try:

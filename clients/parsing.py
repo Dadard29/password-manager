@@ -5,6 +5,8 @@ import click
 from Crypto.Cipher import ChaCha20
 from Crypto.Protocol.KDF import bcrypt
 
+from diffie_hellman import gen_public_key
+
 salt = b'\xad\x9a\x8e\xdf`X\x82\x8a\xfb_\xfeVS\xaf\x95\x12'
 
 
@@ -36,22 +38,25 @@ class Parser(object):
         return plain.decode()
 
     @staticmethod
-    def derive_master_key(master_key: str) -> bytes:
+    def derive(key: str) -> bytes:
         return md5(
-            bcrypt(master_key, 14, salt=salt)
+            bcrypt(key, 14, salt=salt)
         ).hexdigest().encode()
 
     @staticmethod
-    def get_master_key():
-        return click.prompt('master key', hide_input=True, type=str)
+    def get_public_key() -> (int, bytes):
+        private_key = click.prompt('private key', hide_input=True, type=str)
+        # derive private_key to avoid dictionary attack
+        private_key_derived = Parser.derive(private_key)
+        return gen_public_key(private_key_derived), private_key_derived
 
     @staticmethod
-    def get_entry_value_from_input(master_key_derived: bytes):
+    def get_entry_value_from_input(key_derived: bytes):
         plain_value = click.prompt(
             'Enter the entry\'s value', hide_input=True,
             confirmation_prompt=True)
 
-        return Parser.cipher_encode(plain_value, master_key_derived)
+        return Parser.cipher_encode(plain_value, key_derived)
 
     @staticmethod
     def update_metas(metas) -> dict:

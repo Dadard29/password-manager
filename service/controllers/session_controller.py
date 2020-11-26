@@ -14,9 +14,11 @@ def session_post():
             return bad_request("a session is already active")
 
         # the key (base64 encoded) to use for database encryption/decryption
-        master_key = request.headers.get('key')
+        public_key = int(
+            request.headers.get('key')
+        )
 
-        session_global.open(master_key)
+        session_global.open(public_key)
 
         return created({
             "token": session_global.token,
