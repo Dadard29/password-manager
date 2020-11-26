@@ -11,6 +11,6 @@ build:
     - docker info
     - echo "registering with $REGISTRY_USERNAME $REGISTRY_PASSWORD"
     - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USERNAME --password-stdin registry.gitlab.com
-    - docker build -t $IMAGE_NAME .
+    - docker build -t $IMAGE_NAME --build-arg ARG_DF_PRIVATE_KEY=$ARG_DF_PRIVATE_KEY .
     - docker push $IMAGE_NAME
 
