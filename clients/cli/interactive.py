@@ -4,10 +4,11 @@ from urllib.parse import urlparse
 import click
 
 from caller import Caller
+from cli.input import Input
 from entry import Entry
-from logger import Logger
+from cli.logger import Logger
 from parsing import Parser
-from printer import Printer
+from cli.printer import Printer
 
 
 class InteractiveInput(cmd.Cmd):
@@ -173,9 +174,9 @@ class InteractiveInput(cmd.Cmd):
 
         if not entry_exists:
             # creates a new one
-            entry_value = Parser.get_entry_value_from_input(self.p_key_derived)
+            entry_value = Input.get_entry_value_from_input(self.p_key_derived)
 
-            metas = Parser.get_metas()
+            metas = Input.get_metas()
             metas['created_with_cli'] = "true"
 
             r = self.caller.post_entry(path, entry_name, entry_value, metas)
@@ -189,13 +190,13 @@ class InteractiveInput(cmd.Cmd):
             entry = Entry(entry_exists_r.json()['body'])
 
             if click.confirm('Update the value of this entry ?'):
-                entry_value = Parser.get_entry_value_from_input(self.p_key_derived)
+                entry_value = Input.get_entry_value_from_input(self.p_key_derived)
 
                 entry.metas['created_with_cli'] = "true"
             else:
                 entry_value = entry.value
 
-            Parser.update_metas(entry.metas)
+            Input.update_metas(entry.metas)
 
             r = self.caller.update_entry(path, entry_name, entry_value, entry.metas)
             if r.status_code != 200:
@@ -249,7 +250,7 @@ class InteractiveInput(cmd.Cmd):
         Get a fresh new session from server
         """
 
-        key = Parser.get_public_key()
+        key = Input.get_public_key()
         current_host = self.caller.host
 
         try:

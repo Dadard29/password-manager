@@ -2,7 +2,7 @@ import click
 import requests
 from requests import ConnectionError
 
-from .. import caller as cl
+from caller import Caller
 from cli.input import Input
 from cli.interactive import InteractiveInput
 from cli.logger import Logger
@@ -34,7 +34,7 @@ def pm(debug, host):
         key, p_key_derived = Input.get_public_key()
 
         logger.debug('creating a new session...')
-        caller = cl.Caller(host, key)
+        caller = Caller(host, key)
         logger.info(f'session created')
 
     except ConnectionError as ce:
