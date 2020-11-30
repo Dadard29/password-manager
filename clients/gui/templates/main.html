@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container" id="forms">
+    <div class="row padded">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <button class="btn btn-success" disabled>{{ host }}</button>
+                </div>
+                <div class="col">
+                    <a class="btn btn-outline-danger" href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row padded">
+{#    breadcrumb#}
+        <div class="container-fluid">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+              {% for p in path_parts %}
+                    <li class="breadcrumb-item"><a href="{{ p['href'] }}">{{ p['name'] }}</a></li>
+              {% endfor %}
+              <li class="breadcrumb-item active" aria-current="page">{{ dirname }}</li>
+              </ol>
+            </nav>
+        </div>
+{#    dircontent#}
+
+
+    <span class="log">{{ msg }}</span>
+    {% if err != True %}
+        <div class="container-fluid">
+            {% block dir_content %}{% endblock %}
+        </div>
+    {% endif %}
+</div>
+</div>
+
+{% endblock %}

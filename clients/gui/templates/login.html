@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <form method="post">
+        <div class="form-row justify-content-center">
+            <div class="col">
+                <label for="host-input" class="sr-only">Master key</label>
+                <input id="host-input" type="text" class="form-control" placeholder="Host"
+                       name="host" autocomplete="host" value="{{ host }}">
+            </div>
+            <div class="col">
+                <label for="master-key-input" class="sr-only">Master key</label>
+                <input id="master-key-input" type="password" class="form-control" placeholder="Private key"
+                       name="private_key" autocomplete="private_key">
+            </div>
+            <div class="col">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </form>
+
+    <span class="log">{{ msg }}</span>
+{% endblock %}

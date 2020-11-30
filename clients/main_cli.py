@@ -8,11 +8,6 @@ from cli.interactive import InteractiveInput
 from cli.logger import Logger
 
 
-def check_up(host):
-    r = requests.get(host)
-    return r.status_code == 404
-
-
 @click.command()
 @click.option('--debug/--no-debug', default=False, help='activate debug mode')
 @click.option('--host', '-h', help='set the host where the service is running', required=True)
@@ -26,7 +21,7 @@ def pm(debug, host):
     p_key_derived = None
 
     try:
-        if not check_up(host):
+        if not Caller.check_up(host):
             logger.error('error creating session: host down')
         else:
             logger.debug('host up')

@@ -1,4 +1,4 @@
-from requests import Session
+from requests import Session, get
 
 
 class Caller(object):
@@ -6,9 +6,18 @@ class Caller(object):
     endpoint_directory = '/database/directory'
     endpoint_entry = '/database/entry'
 
+    @staticmethod
+    def check_up(host: str):
+        try:
+            r = get(host)
+            return r.status_code == 404
+        except:
+            return False
+
     def __init__(self, host, key: int):
         self.host = host
         self.http = Session()
+
         r = self.http.post(
             self._get_url(self.endpoint_session),
             headers={'key': str(key)}

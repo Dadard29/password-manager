@@ -1,0 +1,19 @@
+.title {
+    padding: 50px;
+}
+
+.log {
+    color: red;
+    font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+}
+
+.host {
+    border: solid 1px green;
+    border-radius: 5px;
+    padding: 5px;
+    color: green;
+}
+
+.padded {
+    padding: 15px;
+}

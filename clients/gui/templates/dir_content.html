@@ -1,0 +1,24 @@
+{% extends "main.html" %}
+
+{% block dir_content %}
+
+<div class="row">
+    <div class="col">Name</div>
+    <div class="col">Size</div>
+    <div class="col">Created at</div>
+    <div class="col">Updated at</div>
+</div>
+
+{% for d in dir_content_list %}
+    <div class="row">
+        <div class="col">
+            <a href="{{ d['href'] }}">{{ d['name'] }}</a>
+        </div>
+        <div class="col">{{ d['size'] }}</div>
+        <div class="col">{{ d['created_at'] }}</div>
+        <div class="col">{{ d['updated_at'] }}</div>
+    </div>
+{% endfor %}
+
+
+{% endblock %}
